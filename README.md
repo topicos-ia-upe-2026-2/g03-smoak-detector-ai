@@ -111,12 +111,22 @@ Os valores acima são parâmetros iniciais de planejamento e poderão ser ajusta
 
 ## Como executar
 
-> A implementação ainda será integrada ao repositório. Os comandos abaixo descrevem o fluxo planejado e deverão ser atualizados se a estrutura final de arquivos for diferente.
+### E2: dados e baseline reproduzíveis
+
+O pipeline da E2 está em [src/prepare_dfire.py](src/prepare_dfire.py) e [src/run_baseline.py](src/run_baseline.py). Para execução em GPU, abra [notebooks/e2_dados_baseline.ipynb](notebooks/e2_dados_baseline.ipynb) no Google Colab. O notebook clona este projeto e o YOLOv7 oficial, prepara dependências, audita as partições do D-Fire e executa o baseline com 50 camadas congeladas. Os detalhes de download, estrutura, rótulos e licença estão em [data/README.md](data/README.md); o protocolo e seu estado estão em [docs/e2_dados_baseline.md](docs/e2_dados_baseline.md).
+
+As dependências estão separadas por ambiente: `requirements.txt` contém as dependências diretas dos scripts de dados, enquanto `requirements-colab.txt` acrescenta as bibliotecas de treinamento do YOLOv7. No Colab, execute `pip install -r requirements-colab.txt`. `torch`, `torchvision`, NumPy e Protobuf são mantidos nas versões fornecidas pelo runtime para preservar a compatibilidade entre Python, CUDA e GPU; o motivo e as versões usadas devem aparecer no log da execução. O notebook fixa o YOLOv7 no commit `a207844b1ce82d204ab36d87d496728d3d2348e7`, usado nos experimentos da E2.
+
+Os dados, pesos e resultados grandes ficam fora do Git. Em 22/11/2026, a preparação foi validada no Colab sobre o espelho Kaggle: 21.527 imagens, 397 anotações corrigidas ou removidas e auditoria final sem erros. O protocolo inicial também foi executado com 3.000 imagens de treino, 3 épocas e Tesla T4: o baseline congelado obteve mAP@0.5=0,322 no teste, enquanto o fine-tuning com todas as camadas liberadas obteve 0,204. São resultados iniciais, documentados em [docs/experimentos.md](docs/experimentos.md), e não substituem o treinamento principal. Ainda falta confirmar as partições contra as listas oficiais e validar visualmente o mapeamento `0/1`. Os caminhos gerados em `dfire.yaml` são específicos de cada ambiente.
+
+### Fluxo completo previsto para etapas seguintes
+
+> Os comandos abaixo representam o plano original de fine-tuning e aplicação. A etapa E2 acima é a implementação versionada atual.
 
 ```bash
 # 1. Clonar a implementação oficial e criar o ambiente
-git clone https://github.com/WongKinYiu/yolov7.git
-cd yolov7
+git clone https://github.com/WongKinYiu/yolov7.git ../yolov7
+git -C ../yolov7 checkout --detach a207844b1ce82d204ab36d87d496728d3d2348e7
 python -m venv .venv
 
 # Linux/macOS
@@ -125,7 +135,9 @@ source .venv/bin/activate
 # Windows PowerShell
 # .\.venv\Scripts\Activate.ps1
 
-pip install -r requirements.txt
+# No Colab, o PyTorch já vem configurado. Em ambiente local, instale antes
+# uma versão de PyTorch adequada à sua GPU/CUDA.
+pip install -r requirements-colab.txt
 
 # 2. Baixar o D-Fire pelos links oficiais e organizar train/val/test.
 # Criar data/dfire.yaml com nc: 2 e a ordem de classes confirmada nos metadados.
@@ -149,7 +161,7 @@ python detect.py --weights runs/train/dfire-yolov7/weights/best.pt --conf 0.25 -
 
 ## Resultados
 
-O projeto ainda se encontra na fase de proposta e, portanto, não possui resultados experimentais próprios. A hipótese inicial é buscar **mAP@0.5 ≥ 0,70** e **recall de fumaça ≥ 0,80** em um conjunto de teste isolado. Essas metas não são critérios obrigatórios de aprovação: resultados inferiores também deverão ser relatados e discutidos.
+O projeto possui resultados experimentais iniciais da E2, obtidos com um subconjunto estratificado de 3.000 imagens e somente 3 épocas. O baseline congelado alcançou mAP@0.5=0,322 e o ajuste de todas as camadas alcançou 0,204 no teste completo; a queda está documentada como obstáculo e orienta o plano de correção da E3. A hipótese de trabalho para o treinamento principal continua sendo buscar **mAP@0.5 ≥ 0,70** e **recall de fumaça ≥ 0,80** em um conjunto de teste isolado. Essas metas não são critérios obrigatórios de aprovação: resultados inferiores também serão relatados e discutidos.
 
 Os resultados finais deverão incluir:
 
