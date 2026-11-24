@@ -20,6 +20,10 @@ secrets/
 # Dados e artefatos pesados — usar link externo (Drive/Hugging Face)
 data/*
 !data/.gitkeep
+!data/README.md
+!data/dfire.yaml
+artifacts/
+third_party/
 *.csv
 *.json
 *.parquet

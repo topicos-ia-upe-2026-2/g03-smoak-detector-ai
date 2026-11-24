@@ -1,7 +1,4 @@
-# Dependências do projeto — atualizar conforme a etapa
-# Exemplos (remover o que não usar):
-# torch
-# transformers
-# datasets
-# scikit-learn
-# streamlit
+# Dependências diretas dos scripts deste repositório.
+# Para treinar no Google Colab, use requirements-colab.txt, que inclui este arquivo.
+Pillow>=10,<13
+kagglehub>=0.3,<2
